@@ -53,8 +53,9 @@ d_for_model <- d %>%
          -When.making.decisions..are.you.more.likely.to.seek.advice.or.decide.for.yourself._2011.,
          -How.proud.are.you.to.be.a.Somerville.resident._2015 : 
            -The.availability.of.affordable.housing_2011,
+         
          # Seriously reduces degrees of freedom b/c NAs
-         # -How.would.you.rate.the.following..The.overall.quality.of.public.schools.,
+         -How.would.you.rate.the.following..The.overall.quality.of.public.schools.,
          -How.would.you.rate.the.following..The.overall.quality.of.public.schools.in.your.community._2011,
          -How.would.you.rate.the.following..The.beauty.or.physical.setting_2011 :
            -How.would.you.rate.the.following..The.maintenance.of.streets.and.sidewalks_2015,
