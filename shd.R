@@ -26,6 +26,29 @@ d[,3:26] <-round(d[,3:26],0)
 # d[d > 10,3:26] <- NA
 
 
+# Clean up some more
+d <- d %>%
+  mutate(Do.you.have.children.age.18.or.younger.who.live.with.you. = 
+           tolower(Do.you.have.children.age.18.or.younger.who.live.with.you.),
+         Do.you.plan.to.move.away.from.Somerville.in.the.next.two.years. = 
+           tolower(Do.you.plan.to.move.away.from.Somerville.in.the.next.two.years.),
+         Are.you.a.student. = 
+           tolower(Are.you.a.student.)) %>%
+  mutate(Race = ifelse(Year == 2015, as.character(What.is.your.race.or.ethnicity._2015), 
+                       ifelse(Are.you.of.Hispanic..Latino..or.Spanish.origin._2013 == "yes", 
+                              paste(What.is.your.race_2011_2013, ", Hispanic / Latino", sep = ""), 
+                              as.character(What.is.your.race_2011_2013))))
+
+d$white <- grepl("White", d$Race)
+
+d$black <- grepl("Black", d$Race)
+
+d$latino <- grepl("Latino", d$Race)
+
+d$asian <- grepl("Asian", d$Race)
+
+
+
 
 #### Model the data ####
 
@@ -72,18 +95,9 @@ d_for_model <- d %>%
          -What.neighborhood.do.you.live.in.,
          -Ward,
          -Precinct,
-         -What.is.your.race.or.ethnicity._2015
-         ) %>%
-  
-  ## Clean up
-  mutate(Do.you.have.children.age.18.or.younger.who.live.with.you. = 
-           tolower(Do.you.have.children.age.18.or.younger.who.live.with.you.),
-         Do.you.plan.to.move.away.from.Somerville.in.the.next.two.years. = 
-           tolower(Do.you.plan.to.move.away.from.Somerville.in.the.next.two.years.),
-         Are.you.a.student. = 
-           tolower(Are.you.a.student.))
-
-
+         -What.is.your.race.or.ethnicity._2015,
+         -Race
+         )
 
 
 reg <- lm(How.happy.do.you.feel.right.now. ~ ., data = d_for_model)
@@ -91,6 +105,8 @@ summary(reg)
 
 reg_tidy <- tidy(reg)
 write.csv(reg_tidy, "./happiness_reg.csv")
+
+
 
 
 reg <- lm(How.satisfied.are.you.with.your.neighborhood. ~ ., data = d_for_model)
