@@ -1,7 +1,9 @@
 # Created By Daniel Hadley Mon Apr 18 12:39:18 EDT 2016 #
 setwd("/Users/dphnrome/Documents/Git/shd")
+setwd("/Users/DHadley/Github/shd")
 
 library(dplyr)
+library(randomForest)
 
 # Load Data
 raw_d <- read.csv("././Somerville_Happiness_Survey_responses_-_2011__2013__2015.csv")
@@ -104,7 +106,7 @@ reg <- lm(How.happy.do.you.feel.right.now. ~ ., data = d_for_model)
 summary(reg)
 
 reg_tidy <- tidy(reg)
-write.csv(reg_tidy, "./happiness_reg.csv")
+# write.csv(reg_tidy, "./happiness_reg.csv")
 
 
 
@@ -113,4 +115,56 @@ reg <- lm(How.satisfied.are.you.with.your.neighborhood. ~ ., data = d_for_model)
 summary(reg)
 
 reg_tidy <- tidy(reg)
-write.csv(reg_tidy, "./neighborhood_reg.csv")
+# write.csv(reg_tidy, "./neighborhood_reg.csv")
+
+
+
+
+#### Random Forest ####
+d_for_rf <- d_for_model %>% 
+  mutate(Do.you.have.children.age.18.or.younger.who.live.with.you. = 
+           as.factor(Do.you.have.children.age.18.or.younger.who.live.with.you.),
+         Do.you.plan.to.move.away.from.Somerville.in.the.next.two.years. = 
+           as.factor(Do.you.plan.to.move.away.from.Somerville.in.the.next.two.years.),
+         Are.you.a.student. = 
+           as.factor(Are.you.a.student.))
+
+Random_Forest_Model <- randomForest(How.happy.do.you.feel.right.now. ~ ., data = d_for_rf, na.action = na.omit)
+varImpPlot(Random_Forest_Model)
+
+
+new_data <- d_for_rf[48, -1]
+predict(Random_Forest_Model, new_data)
+
+new_data[,1] <- 8
+predict(Random_Forest_Model, new_data)
+
+
+
+
+#### Geo analysis ####
+geo <- read.csv("./geo.csv")
+
+# Merge
+d_geo <- merge(d, geo)
+
+getisord <- d_geo %>% select(How.satisfied.are.you.with.your.neighborhood., lat, lon) %>% 
+  filter(is.na(lat) == FALSE)
+
+
+
+
+Somerville = c(lon = -71.1000, lat =  42.3875)
+map.in = get_map(location = Somerville, zoom = 14, maptype="roadmap",color = "bw")
+
+fire.map <- ggmap(map.in) %+% getisord + 
+  aes(x = lon,
+      y = lat,
+      z = How.satisfied.are.you.with.your.neighborhood.) +
+  stat_summary2d(fun = "mean", 
+                 binwidth = c(.003, .003),
+                 alpha = 0.5) + 
+  scale_fill_gradientn(name = "Happiness", colours=(brewer.pal(9,"YlGnBu"))) +
+  labs(fill="") +
+  theme_nothing(legend=TRUE) + ggtitle("Median Response Times: 2009-2015")
+print(fire.map)
